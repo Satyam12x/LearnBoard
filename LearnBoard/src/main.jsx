@@ -2,22 +2,20 @@ import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { motion, AnimatePresence } from "framer-motion";
 import TaskManager from "./components/TaskManager";
-import Notes from "./components/Notes";
-import DashboardStats from "./components/DashboardStats";
-import Reminders from "./components/Reminders";
+import CopySaver from "./components/CopySaver";
+import TimetableReminders from "./components/TimeTableReminders";
+import Dashboard from "./components/Dashboard";
 import { loadData, saveData } from "./utils/storage";
-import { FaDownload, FaPlus } from "react-icons/fa";
+import { FaPlus, FaDownload } from "react-icons/fa";
 import "./index.css";
 
-// Default data structure
 const defaults = {
   tasks: [],
   notes: [],
+  timetable: { slots: {} },
   reminders: [],
-  settings: { pomodoroLength: 25, breakLength: 5 },
 };
 
-// Animation variants (subtle, no scale)
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -30,13 +28,13 @@ const itemVariants = {
 
 const SkeletonLoader = () => (
   <motion.div
-    className="space-y-4"
+    className="space-y-3"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
   >
     <div className="skeleton skeleton-line w-full"></div>
     <div className="skeleton skeleton-card w-full"></div>
-    <div className="skeleton skeleton-card w-3/4"></div>
+    <div className="skeleton skeleton-line w-1/2"></div>
   </motion.div>
 );
 
@@ -54,8 +52,9 @@ const App = () => {
     const handleKey = (e) => {
       if (e.ctrlKey && e.key === "Enter") addQuickTask();
       if (e.key === "1") setActiveSection("tasks");
-      if (e.key === "2") setActiveSection("notes");
-      if (e.key === "3") setActiveSection("reminders");
+      if (e.key === "2") setActiveSection("copysaver");
+      if (e.key === "3") setActiveSection("timetable");
+      if (e.key === "4") setActiveSection("dashboard");
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
@@ -100,8 +99,8 @@ const App = () => {
   const exportData = () => {
     const csv = `Tasks: ${JSON.stringify(
       data.tasks || []
-    )}\nNotes: ${JSON.stringify(data.notes || [])}\nReminders: ${JSON.stringify(
-      data.reminders || []
+    )}\nNotes: ${JSON.stringify(data.notes || [])}\nTimetable: ${JSON.stringify(
+      data.timetable || {}
     )}`;
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -124,10 +123,10 @@ const App = () => {
       id: "dashboard",
       label: "Dashboard",
       comp: (
-        <DashboardStats
+        <Dashboard
           tasks={filteredTasks}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          notes={data.notes || []}
+          timetable={data.timetable || { slots: {} }}
         />
       ),
     },
@@ -137,21 +136,23 @@ const App = () => {
       comp: <TaskManager tasks={filteredTasks} updateData={updateData} />,
     },
     {
-      id: "notes",
-      label: "Notes",
-      comp: <Notes data={data} updateData={updateData} tasks={filteredTasks} />,
+      id: "copysaver",
+      label: "Copy Saver",
+      comp: (
+        <CopySaver data={data} updateData={updateData} tasks={filteredTasks} />
+      ),
     },
     {
-      id: "reminders",
-      label: "Reminders",
-      comp: <Reminders tasks={filteredTasks} updateData={updateData} />,
+      id: "timetable",
+      label: "Timetable",
+      comp: <TimetableReminders data={data} updateData={updateData} />,
     },
   ];
 
   if (isLoading) {
     return (
       <motion.div
-        className="p-4 bg-gray-100 min-h-[400px] max-w-[350px] font-sans"
+        className="p-3 bg-gray-100 min-h-[400px] max-w-[320px] font-ubuntu"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -163,31 +164,31 @@ const App = () => {
 
   return (
     <motion.div
-      className="p-3 bg-gray-100 min-h-[400px] max-w-[350px] font-sans font-ubuntu"
+      className="p-2 bg-gray-100 min-h-[400px] max-w-[320px] font-ubuntu"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <motion.h2
-        className="text-xl font-bold text-center mb-3 text-gray-800"
+        className="text-lg font-bold text-center mb-2 text-gray-800"
         variants={itemVariants}
       >
-        UniDash Dashboard
+        UniDash
       </motion.h2>
       <motion.input
         type="text"
         placeholder="Search tasks..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full p-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full p-1.5 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
         variants={itemVariants}
       />
-      <motion.div className="flex flex-wrap gap-1 mb-3" variants={itemVariants}>
+      <motion.div className="flex flex-wrap gap-1 mb-2" variants={itemVariants}>
         {sections.map((s) => (
           <motion.button
             key={s.id}
             onClick={() => setActiveSection(s.id)}
-            className={`flex-1 p-1.5 bg-gray-200 border border-gray-300 rounded-md card-hover text-sm ${
+            className={`flex-1 p-1 bg-gray-200 border border-gray-300 rounded card-hover text-xs ${
               activeSection === s.id ? "bg-primary text-white" : ""
             }`}
             whileTap={{ scale: 0.98 }}
@@ -199,7 +200,7 @@ const App = () => {
       <AnimatePresence mode="wait">
         <motion.div
           key={activeSection}
-          className="h-[300px] overflow-y-auto border border-gray-300 p-3 rounded-md bg-white"
+          className="h-[280px] overflow-y-auto border border-gray-300 p-2 rounded bg-white"
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -10 }}
@@ -210,20 +211,20 @@ const App = () => {
           )}
         </motion.div>
       </AnimatePresence>
-      <motion.div className="flex gap-2 mt-3" variants={itemVariants}>
+      <motion.div className="flex gap-1 mt-2" variants={itemVariants}>
         <motion.button
           onClick={exportData}
-          className="flex-1 p-1.5 bg-secondary text-white rounded-md card-hover text-sm"
+          className="flex-1 p-1 bg-secondary text-white rounded card-hover text-xs"
           whileTap={{ scale: 0.98 }}
         >
-          <FaDownload className="inline mr-1 text-xs" /> Export
+          <FaDownload className="inline mr-0.5 text-xs" /> Export
         </motion.button>
         <motion.button
           onClick={addQuickTask}
-          className="flex-1 p-1.5 bg-primary text-white rounded-md card-hover text-sm"
+          className="flex-1 p-1 bg-primary text-white rounded card-hover text-xs"
           whileTap={{ scale: 0.98 }}
         >
-          <FaPlus className="inline mr-1 text-xs" /> Quick Add
+          <FaPlus className="inline mr-0.5 text-xs" /> Quick Add
         </motion.button>
       </motion.div>
     </motion.div>

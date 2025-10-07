@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "UniDash - Compact Student Dashboard",
+  "version": "1.3",
+  "description": "Tasks, notes, timetable, reminders, and dashboard for students.",
+  "permissions": ["storage", "alarms", "notifications", "downloads", "clipboardRead", "activeTab"],
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "UniDash"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
