@@ -2,13 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import {
-  FaClock,
-  FaCheckCircle,
-  FaTasks,
-  FaChartPie,
-  FaSearch,
-} from "react-icons/fa";
+import { FaTasks, FaCheckCircle, FaChartPie, FaSearch } from "react-icons/fa";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -36,12 +30,11 @@ const itemVariants = {
   },
 };
 
-const DashboardStats = ({ tasks, timeSessions, searchTerm, setSearchTerm }) => {
-  const totalTime = timeSessions.reduce((sum, s) => sum + s.duration, 0);
-  const completionRate = tasks.length
-    ? ((tasks.filter((t) => t.completed).length / tasks.length) * 100).toFixed(
-        1
-      )
+const DashboardStats = ({ tasks = [], searchTerm, setSearchTerm }) => {
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const completionRate = totalTasks
+    ? ((completedTasks / totalTasks) * 100).toFixed(1)
     : 0;
 
   const chartData = {
@@ -60,10 +53,10 @@ const DashboardStats = ({ tasks, timeSessions, searchTerm, setSearchTerm }) => {
 
   const stats = [
     {
-      icon: FaClock,
-      label: "Total Time Tracked",
-      value: `${totalTime.toFixed(1)} min`,
-      color: "text-blue-600",
+      icon: FaTasks,
+      label: "Active Tasks",
+      value: totalTasks,
+      color: "text-purple-600",
     },
     {
       icon: FaCheckCircle,
@@ -71,61 +64,48 @@ const DashboardStats = ({ tasks, timeSessions, searchTerm, setSearchTerm }) => {
       value: `${completionRate}%`,
       color: "text-green-600",
     },
-    {
-      icon: FaTasks,
-      label: "Active Tasks",
-      value: tasks.length,
-      color: "text-purple-600",
-    },
   ];
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-4"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <motion.h3
-        className="text-xl font-bold text-gray-800 flex items-center gap-2 card-hover"
+        className="text-lg font-bold text-gray-800 flex items-center gap-2"
         variants={itemVariants}
-        whileHover={{ scale: 1.05, transition: { ease: [0.42, 0, 0.58, 1] } }}
       >
         <FaChartPie className="text-primary" />
         Stats Overview
       </motion.h3>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-2">
         <AnimatePresence>
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
-              className={`p-4 bg-white rounded-lg shadow-md card-hover ${stat.color}`}
+              className={`p-3 bg-white rounded shadow-sm card-hover ${stat.color} text-xs`}
               variants={itemVariants}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: index * 0.1, ease: [0.42, 0, 0.58, 1] }}
-              whileHover={{
-                scale: 1.02,
-                transition: { duration: 0.2, ease: [0.42, 0, 0.58, 1] },
-              }}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <stat.icon className="text-2xl" />
+                <div className="flex items-center gap-2">
+                  <stat.icon className="text-lg" />
                   <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      {stat.label}
-                    </p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className="font-medium text-gray-600">{stat.label}</p>
+                    <p className="font-bold">{stat.value}</p>
                   </div>
                 </div>
                 {/* Animated progress bar for completion */}
                 {stat.label === "Completion Rate" && (
                   <motion.div
-                    className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden progress-container"
+                    className="w-16 h-1.5 bg-gray-200 rounded overflow-hidden progress-container"
                     initial={{ width: 0 }}
                     animate={{ width: `${completionRate}%` }}
                     transition={{ duration: 1.5, ease: [0.42, 0, 0.58, 1] }}
@@ -139,28 +119,22 @@ const DashboardStats = ({ tasks, timeSessions, searchTerm, setSearchTerm }) => {
         </AnimatePresence>
       </div>
 
-      {/* Search Input with Animation - FIXED: Wrapped in relative div */}
-      <motion.div variants={itemVariants}>
-        <motion.div className="relative">
-          <motion.input
-            placeholder="Filter categories..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-300 ease-in-out"
-            whileFocus={{
-              scale: 1.02,
-              boxShadow: "0 0 0 3px rgba(76, 175, 80, 0.1)",
-            }}
-          />
-          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-        </motion.div>
+      {/* Search Input */}
+      <motion.div variants={itemVariants} className="relative">
+        <motion.input
+          placeholder="Filter categories..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full p-2 pl-8 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary text-xs"
+          whileFocus={{ opacity: 0.8 }}
+        />
+        <FaSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
       </motion.div>
 
-      {/* Animated Pie Chart */}
+      {/* Pie Chart */}
       <motion.div
-        className="chart-container h-40 flex justify-center items-center bg-white rounded-lg shadow-md card-hover"
+        className="h-28 flex justify-center items-center bg-white rounded shadow-sm card-hover"
         variants={itemVariants}
-        whileHover={{ scale: 1.05, transition: { ease: [0.42, 0, 0.58, 1] } }}
       >
         <Pie
           data={chartData}
@@ -168,11 +142,11 @@ const DashboardStats = ({ tasks, timeSessions, searchTerm, setSearchTerm }) => {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: { position: "bottom" },
+              legend: { position: "bottom", labels: { font: { size: 10 } } },
             },
             animation: {
               animateRotate: true,
-              duration: 2000,
+              duration: 1500,
               easing: "easeOut",
             },
           }}

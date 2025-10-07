@@ -1,14 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
-        primary: "#4caf50", // Green for actions
-        secondary: "#2196f3", // Blue for accents
+        primary: '#4caf50',
+        secondary: '#2196f3',
+      },
+      fontFamily: {
+        'ubuntu': ['Ubuntu', 'sans-serif'],
       },
     },
   },
   plugins: [],
-  darkMode: "class", // Enable if you add dark mode later
-};
+  darkMode: 'class',
+}

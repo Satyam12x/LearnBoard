@@ -4,7 +4,6 @@ import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import {
   FaPlus,
-  FaChartPie,
   FaCheck,
   FaExclamationTriangle,
   FaClock,
@@ -38,7 +37,7 @@ const TaskManager = ({ tasks, updateData }) => {
         priority,
         category,
       };
-      updateData({ tasks: [...tasks, newTask] });
+      updateData({ tasks: [...(tasks || []), newTask] });
       if (typeof chrome !== "undefined") {
         chrome.alarms.create(`deadline-${newTask.id}`, {
           when: new Date(due).getTime() - 24 * 60 * 60 * 1000,
@@ -61,8 +60,9 @@ const TaskManager = ({ tasks, updateData }) => {
     datasets: [
       {
         data: [
-          tasks.filter((t) => t.completed).length,
-          tasks.length - tasks.filter((t) => t.completed).length,
+          (tasks || []).filter((t) => t.completed).length,
+          (tasks || []).length -
+            (tasks || []).filter((t) => t.completed).length,
         ],
         backgroundColor: ["#4caf50", "#f44336"],
       },
@@ -82,32 +82,30 @@ const TaskManager = ({ tasks, updateData }) => {
 
   return (
     <motion.div
-      className="space-y-4"
+      className="space-y-3"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 text-xs">
         <motion.input
           placeholder="Task title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="p-2 border border-gray-300 rounded-md"
+          className="p-1.5 border border-gray-300 rounded text-xs"
           variants={itemVariants}
-          whileFocus={{ scale: 1.02 }}
         />
         <motion.input
           type="date"
           value={due}
           onChange={(e) => setDue(e.target.value)}
-          className="p-2 border border-gray-300 rounded-md"
+          className="p-1.5 border border-gray-300 rounded text-xs"
           variants={itemVariants}
-          whileFocus={{ scale: 1.02 }}
         />
         <motion.select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="p-2 border border-gray-300 rounded-md"
+          className="p-1.5 border border-gray-300 rounded text-xs"
           variants={itemVariants}
         >
           <option value="high">High</option>
@@ -117,7 +115,7 @@ const TaskManager = ({ tasks, updateData }) => {
         <motion.select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="p-2 border border-gray-300 rounded-md"
+          className="p-1.5 border border-gray-300 rounded text-xs"
           variants={itemVariants}
         >
           <option value="Work">Work</option>
@@ -127,42 +125,44 @@ const TaskManager = ({ tasks, updateData }) => {
       </div>
       <motion.button
         onClick={addTask}
-        className="w-full p-2 bg-primary text-white rounded-md card-hover"
+        className="w-full p-1.5 bg-primary text-white rounded card-hover text-xs"
         variants={itemVariants}
-        whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
       >
-        <FaPlus className="inline mr-2" /> Add Task
+        <FaPlus className="inline mr-1 text-xs" /> Add Task
       </motion.button>
       <AnimatePresence>
-        <motion.ul className="space-y-2" initial="hidden" animate="visible">
-          {tasks
+        <motion.ul
+          className="space-y-1 max-h-40 overflow-y-auto"
+          initial="hidden"
+          animate="visible"
+        >
+          {(tasks || [])
             .sort((a, b) => new Date(a.due) - new Date(b.due))
             .map((t, index) => {
               const PriorityIcon = priorityIcons[t.priority];
               return (
                 <motion.li
                   key={t.id}
-                  className={`flex justify-between items-center p-3 bg-white rounded-md border-l-4 ${
+                  className={`flex justify-between items-center p-2 bg-white rounded border-l-4 ${
                     priorityColors[t.priority] || "border-gray-300"
-                  } card-hover`}
+                  } card-hover text-xs`}
                   variants={itemVariants}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05, ease: [0.42, 0, 0.58, 1] }}
-                  whileHover={{ scale: 1.02 }}
                 >
-                  <div className="flex items-center gap-2">
-                    {PriorityIcon && <PriorityIcon className="text-sm" />}
-                    <span className="text-sm">
-                      {t.title} - {t.category} - Due: {t.due}
+                  <div className="flex items-center gap-1">
+                    {PriorityIcon && <PriorityIcon className="text-xs" />}
+                    <span>
+                      {t.title} - {t.category} - {t.due}
                     </span>
                   </div>
                   <motion.input
                     type="checkbox"
                     checked={t.completed}
                     onChange={() => toggleTask(t.id)}
-                    className="ml-2"
+                    className="ml-1"
                     whileTap={{ scale: 0.8 }}
                   />
                 </motion.li>
@@ -170,17 +170,13 @@ const TaskManager = ({ tasks, updateData }) => {
             })}
         </motion.ul>
       </AnimatePresence>
-      <motion.div
-        className="h-32 flex justify-center card-hover"
-        variants={itemVariants}
-        whileHover={{ scale: 1.05 }}
-      >
+      <motion.div className="h-24 flex justify-center" variants={itemVariants}>
         <Pie
           data={chartData}
           options={{
             responsive: true,
             maintainAspectRatio: false,
-            animation: { duration: 1500, easing: "easeOut" },
+            animation: { duration: 1000, easing: "easeOut" },
           }}
         />
       </motion.div>
