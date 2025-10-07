@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom overrides if needed */
+/* Ubuntu-inspired global styles */
+* {
+  transition: all 0.3s cubic-bezier(0.42, 0, 0.58, 1); /* Ubuntu's easeOutQuart */
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -16,10 +20,7 @@ body {
   max-width: 400px; /* Popup width */
 }
 
-* {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth decelerate */
-}
-
+/* Ubuntu cursor & hover effects */
 .card-hover {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -31,11 +32,25 @@ body {
     0 0 0 1px rgba(255, 255, 255, 0.05);
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="%23000" d="M8 0L0 8l2 2 6-6 6 6 2-2z"/></svg>')
       8 8,
-    pointer; /* Custom pointer fallback */
+    pointer;
 }
 
 /* Ensure charts animate smoothly */
 .chart-container {
   overflow: hidden;
   border-radius: 8px;
+}
+
+/* Progress bars */
+.progress-container {
+  background: #e5e7eb;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background: #4caf50;
+  height: 100%;
+  transition: width 0.5s cubic-bezier(0.42, 0, 0.58, 1);
 }

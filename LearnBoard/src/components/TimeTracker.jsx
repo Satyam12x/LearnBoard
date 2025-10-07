@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -9,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { FaPlay, FaStop, FaClock, FaSync } from "react-icons/fa";
 
 ChartJS.register(
   CategoryScale,
@@ -18,6 +20,16 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
+};
+
+const itemVariants = {
+  hidden: { y: 10, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { ease: [0.42, 0, 0.58, 1] } },
+};
 
 const TimeTracker = ({ data, updateData, tasks }) => {
   const [currentTime, setCurrentTime] = useState(0);
@@ -98,47 +110,75 @@ const TimeTracker = ({ data, updateData, tasks }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <select
+    <motion.div
+      className="space-y-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.select
         value={selectedTaskId}
         onChange={(e) => setSelectedTaskId(parseInt(e.target.value))}
         className="w-full p-2 border border-gray-300 rounded-md"
+        variants={itemVariants}
       >
         {tasks.map((t) => (
           <option key={t.id} value={t.id}>
             {t.title}
           </option>
         ))}
-      </select>
-      <div className="text-lg font-semibold text-center">
-        {formatTime(currentTime)} {isBreak ? "(Break)" : ""} Cycle:{" "}
-        {pomodoroCycle}
-      </div>
+      </motion.select>
+      <motion.div
+        className="text-lg font-semibold text-center"
+        variants={itemVariants}
+        animate={{ color: isRunning ? "#4caf50" : "#f44336" }}
+        transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}
+      >
+        <FaClock className="inline mr-2" /> {formatTime(currentTime)}{" "}
+        {isBreak ? "(Break)" : ""} Cycle: {pomodoroCycle}
+      </motion.div>
       <div className="flex gap-2">
-        <button
+        <motion.button
           onClick={isRunning ? stopTimer : startTimer}
-          className={`flex-1 p-2 rounded-md text-white ${
-            isRunning
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-primary hover:bg-green-600"
+          className={`flex-1 p-2 rounded-md text-white card-hover ${
+            isRunning ? "bg-red-500" : "bg-primary"
           }`}
+          variants={itemVariants}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
         >
+          {isRunning ? (
+            <FaStop className="inline mr-2" />
+          ) : (
+            <FaPlay className="inline mr-2" />
+          )}
           {isRunning ? "Stop" : "Start"}
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           onClick={togglePomodoro}
-          className="flex-1 p-2 bg-secondary text-white rounded-md hover:bg-blue-700"
+          className="flex-1 p-2 bg-secondary text-white rounded-md card-hover"
+          variants={itemVariants}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
         >
-          Pomodoro Mode
-        </button>
+          <FaSync className="inline mr-2" /> Pomodoro
+        </motion.button>
       </div>
-      <div className="h-32">
+      <motion.div
+        className="h-32 card-hover"
+        variants={itemVariants}
+        whileHover={{ scale: 1.05 }}
+      >
         <Bar
           data={chartData}
-          options={{ responsive: true, maintainAspectRatio: false }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1000, easing: "easeOut" },
+          }}
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
